@@ -46,5 +46,122 @@ namespace Dev4Fun_Sem3_eProject.Services
             await smtp.SendAsync(email);
             smtp.Disconnect(true);
         }
+
+        public bool SendConfirmEmail(MailConfirm mailConfirm)
+        {
+            try
+            {
+                MimeMessage emailMessage = new MimeMessage();
+
+                MailboxAddress emailFrom = new MailboxAddress(_mailSettings.DisplayName, _mailSettings.Mail);
+                emailMessage.From.Add(emailFrom);
+
+                MailboxAddress emailTo = new MailboxAddress(mailConfirm.UserName, mailConfirm.UserEmailId);
+                emailMessage.To.Add(emailTo);
+
+                emailMessage.Subject = "Thông báo ứng tuyển thành công!";
+
+                string FilePath = Directory.GetCurrentDirectory() + "\\EmailTemplate\\EmailConfirm.html";
+                string EmailTemplateText = File.ReadAllText(FilePath);
+
+                EmailTemplateText = string.Format(EmailTemplateText, mailConfirm.UserName, mailConfirm.Vacancy, mailConfirm.Time);
+
+                BodyBuilder emailBodyBuilder = new BodyBuilder();
+                emailBodyBuilder.HtmlBody = EmailTemplateText;
+                emailMessage.Body = emailBodyBuilder.ToMessageBody();
+
+                SmtpClient emailClient = new SmtpClient();
+                emailClient.Connect(_mailSettings.Host, _mailSettings.Port);
+                emailClient.Authenticate(_mailSettings.Mail, _mailSettings.Password);
+                emailClient.Send(emailMessage);
+                emailClient.Disconnect(true);
+                emailClient.Dispose();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                //Log Exception Details
+                return false;
+            }
+        }
+
+        public bool SendNoticeEmail(MailNotice mailNotice)
+        {
+            try
+            {
+                MimeMessage emailMessage = new MimeMessage();
+
+                MailboxAddress emailFrom = new MailboxAddress(_mailSettings.DisplayName, _mailSettings.Mail);
+                emailMessage.From.Add(emailFrom);
+
+                MailboxAddress emailTo = new MailboxAddress(mailNotice.UserName, mailNotice.UserEmailId);
+                emailMessage.To.Add(emailTo);
+
+                emailMessage.Subject = "Thông báo lịch phỏng vấn!";
+
+                string FilePath = Directory.GetCurrentDirectory() + "\\EmailTemplate\\EmailNotice.html";
+                string EmailTemplateText = File.ReadAllText(FilePath);
+
+                EmailTemplateText = string.Format(EmailTemplateText, mailNotice.Vacancy, mailNotice.UserName, mailNotice.Time, mailNotice.Who, mailNotice.InterviewLocation);
+
+                BodyBuilder emailBodyBuilder = new BodyBuilder();
+                emailBodyBuilder.HtmlBody = EmailTemplateText;
+                emailMessage.Body = emailBodyBuilder.ToMessageBody();
+
+                SmtpClient emailClient = new SmtpClient();
+                emailClient.Connect(_mailSettings.Host, _mailSettings.Port);
+                emailClient.Authenticate(_mailSettings.Mail, _mailSettings.Password);
+                emailClient.Send(emailMessage);
+                emailClient.Disconnect(true);
+                emailClient.Dispose();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                //Log Exception Details
+                return false;
+            }
+        }
+
+        public bool SendRefuseEmail(MailRefuse mailRefuse)
+        {
+            try
+            {
+                MimeMessage emailMessage = new MimeMessage();
+
+                MailboxAddress emailFrom = new MailboxAddress(_mailSettings.DisplayName, _mailSettings.Mail);
+                emailMessage.From.Add(emailFrom);
+
+                MailboxAddress emailTo = new MailboxAddress(mailRefuse.UserName, mailRefuse.UserEmailId);
+                emailMessage.To.Add(emailTo);
+
+                emailMessage.Subject = "Thông báo từ chối!";
+
+                string FilePath = Directory.GetCurrentDirectory() + "\\EmailTemplate\\EmailRefuse.html";
+                string EmailTemplateText = File.ReadAllText(FilePath);
+
+                EmailTemplateText = string.Format(EmailTemplateText, mailRefuse.UserName, mailRefuse.Vacancy);
+
+                BodyBuilder emailBodyBuilder = new BodyBuilder();
+                emailBodyBuilder.HtmlBody = EmailTemplateText;
+                emailMessage.Body = emailBodyBuilder.ToMessageBody();
+
+                SmtpClient emailClient = new SmtpClient();
+                emailClient.Connect(_mailSettings.Host, _mailSettings.Port);
+                emailClient.Authenticate(_mailSettings.Mail, _mailSettings.Password);
+                emailClient.Send(emailMessage);
+                emailClient.Disconnect(true);
+                emailClient.Dispose();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                //Log Exception Details
+                return false;
+            }
+        }
     }
 }
