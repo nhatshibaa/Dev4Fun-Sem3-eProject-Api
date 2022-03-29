@@ -1,7 +1,12 @@
-﻿using Dev4Fun_Sem3_eProject.Models;
+﻿using Dev4Fun_Sem3_eProject.Data;
+using Dev4Fun_Sem3_eProject.Models;
 using Dev4Fun_Sem3_eProject.Services;
+using Dev4Fun_Sem3_eProject.Settings;
+using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using MimeKit;
 
 namespace Dev4Fun_Sem3_eProject.Controllers
 {
@@ -13,22 +18,6 @@ namespace Dev4Fun_Sem3_eProject.Controllers
         public EmailController(IMailService mailService)
         {
             this.mailService = mailService;
-        }
-
-        [HttpPost("Send")]
-        public async Task<IActionResult> Send([FromForm] MailRequest request)
-        {
-            try
-            {
-                await mailService.SendEmailAsync(request);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-
-                throw ex;
-            }
-
         }
 
         [Route("SendConfirmEmail")]

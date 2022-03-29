@@ -1,7 +1,10 @@
-﻿using Dev4Fun_Sem3_eProject.Models;
+﻿using Dev4Fun_Sem3_eProject.Data;
+using Dev4Fun_Sem3_eProject.Models;
 using Dev4Fun_Sem3_eProject.Settings;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
@@ -10,48 +13,22 @@ namespace Dev4Fun_Sem3_eProject.Services
     public class MailService : IMailService
     {
         private readonly MailSettings _mailSettings;
+        private readonly Dev4Fun_Sem3_eProjectContext _context;
 
-        public MailService(IOptions<MailSettings> options)
+
+        public MailService(IOptions<MailSettings> options, Dev4Fun_Sem3_eProjectContext context)
         {
             _mailSettings = options.Value;
+            _context = context;
         }
-        public async Task SendEmailAsync(MailRequest mailRequest)
-        {
-            var email = new MimeMessage();
-            email.Sender = MailboxAddress.Parse(_mailSettings.Mail);
-            email.To.Add(MailboxAddress.Parse(mailRequest.ToEmail));
-            email.Subject = mailRequest.Subject;
-            var builder = new BodyBuilder();
-            if (mailRequest.Attachments != null)
-            {
-                byte[] fileBytes;
-                foreach (var file in mailRequest.Attachments)
-                {
-                    if (file.Length > 0)
-                    {
-                        using (var ms = new MemoryStream())
-                        {
-                            file.CopyTo(ms);
-                            fileBytes = ms.ToArray();
-                        }
-                        builder.Attachments.Add(file.FileName, fileBytes, ContentType.Parse(file.ContentType));
-                    }
-                }
-            }
-            builder.HtmlBody = mailRequest.Body;
-            email.Body = builder.ToMessageBody();
-            using var smtp = new SmtpClient();
-            smtp.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.StartTls);
-            smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
-            await smtp.SendAsync(email);
-            smtp.Disconnect(true);
-        }
+
 
         public bool SendConfirmEmail(MailConfirm mailConfirm)
         {
             try
             {
                 MimeMessage emailMessage = new MimeMessage();
+
 
                 MailboxAddress emailFrom = new MailboxAddress(_mailSettings.DisplayName, _mailSettings.Mail);
                 emailMessage.From.Add(emailFrom);
@@ -64,7 +41,13 @@ namespace Dev4Fun_Sem3_eProject.Services
                 string FilePath = Directory.GetCurrentDirectory() + "\\EmailTemplate\\EmailConfirm.html";
                 string EmailTemplateText = File.ReadAllText(FilePath);
 
-                EmailTemplateText = string.Format(EmailTemplateText, mailConfirm.UserName, mailConfirm.Vacancy, mailConfirm.Time);
+                var vacancies = new Vacancies();
+                var applicants = new Applicants();
+
+                vacancies = _context.Vacancies.FromSqlRaw(@"select * from Vacancies where Id = {0}", mailConfirm.IdVacancy).First();
+                applicants = _context.Applicants.FromSqlRaw(@"select * from Applicants where Id = {0}", mailConfirm.IdApplicant).First();
+
+                EmailTemplateText = string.Format(EmailTemplateText, applicants.ApplicantName, vacancies.Title, mailConfirm.Time);
 
                 BodyBuilder emailBodyBuilder = new BodyBuilder();
                 emailBodyBuilder.HtmlBody = EmailTemplateText;
@@ -90,6 +73,7 @@ namespace Dev4Fun_Sem3_eProject.Services
         {
             try
             {
+
                 MimeMessage emailMessage = new MimeMessage();
 
                 MailboxAddress emailFrom = new MailboxAddress(_mailSettings.DisplayName, _mailSettings.Mail);
@@ -103,7 +87,16 @@ namespace Dev4Fun_Sem3_eProject.Services
                 string FilePath = Directory.GetCurrentDirectory() + "\\EmailTemplate\\EmailNotice.html";
                 string EmailTemplateText = File.ReadAllText(FilePath);
 
-                EmailTemplateText = string.Format(EmailTemplateText, mailNotice.Vacancy, mailNotice.UserName, mailNotice.Time, mailNotice.Who, mailNotice.InterviewLocation);
+                var vacancies = new Vacancies();
+                var applicants = new Applicants();
+                var accounts = new Accounts();
+
+                //vacancies = _context.Vacancies.Find(mailNotice.IdVacancy);
+                vacancies = _context.Vacancies.FromSqlRaw(@"select * from Vacancies where Id = {0}", mailNotice.IdVacancy).First();
+                applicants = _context.Applicants.FromSqlRaw(@"select * from Applicants where Id = {0}", mailNotice.IdApplicant).First();
+                //applicants = _context.Applicants.Find(mailNotice.IdUser);
+
+                EmailTemplateText = string.Format(EmailTemplateText, vacancies.Title, applicants.ApplicantName, mailNotice.Time.AddDays(3), mailNotice.IdMentor, mailNotice.InterviewLocation, mailNotice.IdHr);
 
                 BodyBuilder emailBodyBuilder = new BodyBuilder();
                 emailBodyBuilder.HtmlBody = EmailTemplateText;
@@ -122,6 +115,7 @@ namespace Dev4Fun_Sem3_eProject.Services
             {
                 //Log Exception Details
                 return false;
+               
             }
         }
 
@@ -142,7 +136,14 @@ namespace Dev4Fun_Sem3_eProject.Services
                 string FilePath = Directory.GetCurrentDirectory() + "\\EmailTemplate\\EmailRefuse.html";
                 string EmailTemplateText = File.ReadAllText(FilePath);
 
-                EmailTemplateText = string.Format(EmailTemplateText, mailRefuse.UserName, mailRefuse.Vacancy);
+                var vacancies = new Vacancies();
+                var applicants = new Applicants();
+
+                vacancies = _context.Vacancies.FromSqlRaw(@"select * from Vacancies where Id = {0}", mailRefuse.IdVacancy).First();
+                applicants = _context.Applicants.FromSqlRaw(@"select * from Applicants where Id = {0}", mailRefuse.IdApplicant).First();
+
+
+                EmailTemplateText = string.Format(EmailTemplateText, applicants.ApplicantName, vacancies.Title);
 
                 BodyBuilder emailBodyBuilder = new BodyBuilder();
                 emailBodyBuilder.HtmlBody = EmailTemplateText;
@@ -165,3 +166,5 @@ namespace Dev4Fun_Sem3_eProject.Services
         }
     }
 }
+
+

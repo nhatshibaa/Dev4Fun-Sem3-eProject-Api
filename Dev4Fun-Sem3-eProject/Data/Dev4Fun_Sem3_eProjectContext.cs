@@ -10,6 +10,10 @@ namespace Dev4Fun_Sem3_eProject.Data
 {
     public class Dev4Fun_Sem3_eProjectContext : DbContext
     {
+        public Dev4Fun_Sem3_eProjectContext()
+        {
+        }
+
         public Dev4Fun_Sem3_eProjectContext (DbContextOptions<Dev4Fun_Sem3_eProjectContext> options)
             : base(options)
         {
@@ -24,5 +28,6 @@ namespace Dev4Fun_Sem3_eProject.Data
         public DbSet<Dev4Fun_Sem3_eProject.Models.Departments> Departments { get; set; }
 
         public DbSet<Dev4Fun_Sem3_eProject.Models.Vacancies> Vacancies { get; set; }
+
     }
 }

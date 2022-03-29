@@ -4,6 +4,7 @@
     {
         public string UserName { get; set; }
         public string UserEmailId { get; set; }
-        public string Vacancy { get; set; }
+        public int IdVacancy { get; set; }
+        public int IdApplicant { get; set; }
     }
 }
