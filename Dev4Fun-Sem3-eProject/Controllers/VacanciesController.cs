@@ -43,6 +43,15 @@ namespace Dev4Fun_Sem3_eProject.Controllers
             return vacancies;
         }
 
+        [HttpGet("/search/{result}")]
+        public async Task<ActionResult<IEnumerable<Vacancies>>> SearchVacancies(string result)
+        {
+            string sqlQuery = "select * from Vacancies where title like '%" + result + "%'";
+            var vacancies = await _context.Vacancies.FromSqlRaw(sqlQuery).ToListAsync();
+            return vacancies;
+        }
+
+
         // PUT: api/Vacancies/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
